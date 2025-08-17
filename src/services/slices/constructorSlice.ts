@@ -15,13 +15,12 @@ const initialState: ConstructorState = {
 
 const calculateTotalPrice = (
   bun: TConstructorIngredient | null,
-  ingredients: TConstructorIngredient[]
+  ingredients: TConstructorIngredient[] | undefined
 ): number => {
   const bunPrice = bun ? bun.price * 2 : 0;
-  const ingredientsPrice = ingredients.reduce(
-    (sum, item) => sum + item.price,
-    0
-  );
+  const ingredientsPrice = Array.isArray(ingredients)
+    ? ingredients.reduce((sum, item) => sum + (item?.price || 0), 0)
+    : 0;
   return bunPrice + ingredientsPrice;
 };
 
@@ -35,44 +34,79 @@ const constructorSlice = createSlice({
         action: PayloadAction<TIngredient & { uniqueId: string }>
       ) => {
         const ingredient = action.payload;
+
+        if (typeof state.totalPrice !== 'number' || isNaN(state.totalPrice)) {
+          state.totalPrice = 0;
+        }
+
+        if (!Array.isArray(state.ingredients)) {
+          state.ingredients = [];
+        }
+
         const constructorIngredient: TConstructorIngredient = {
           ...ingredient,
           id: ingredient.uniqueId
         };
 
         if (ingredient.type === 'bun') {
-          state.bun = constructorIngredient;
+          return {
+            ...state,
+            bun: constructorIngredient,
+            totalPrice: calculateTotalPrice(
+              constructorIngredient,
+              state.ingredients
+            )
+          };
         } else {
-          state.ingredients.push(constructorIngredient);
+          const newIngredients = [...state.ingredients, constructorIngredient];
+          return {
+            ...state,
+            ingredients: newIngredients,
+            totalPrice: calculateTotalPrice(state.bun, newIngredients)
+          };
         }
-
-        state.totalPrice = calculateTotalPrice(state.bun, state.ingredients);
       },
       prepare: (ingredient: TIngredient) => ({
         payload: { ...ingredient, uniqueId: nanoid() }
       })
     },
-
     removeIngredient: (state, action: PayloadAction<string>) => {
-      state.ingredients = state.ingredients.filter(
+      if (!Array.isArray(state.ingredients)) {
+        state.ingredients = [];
+      }
+
+      const newIngredients = state.ingredients.filter(
         (item) => item.id !== action.payload
       );
-      state.totalPrice = calculateTotalPrice(state.bun, state.ingredients);
+      return {
+        ...state,
+        ingredients: newIngredients,
+        totalPrice: calculateTotalPrice(state.bun, newIngredients)
+      };
     },
-
-    clearConstructor: (state) => {
-      state.bun = null;
-      state.ingredients = [];
-      state.totalPrice = 0;
-    },
-
+    clearConstructor: (state) => ({
+      ...state,
+      bun: null,
+      ingredients: [],
+      totalPrice: 0
+    }),
     moveIngredient: (
       state,
       action: PayloadAction<{ fromIndex: number; toIndex: number }>
     ) => {
+      if (!Array.isArray(state.ingredients)) {
+        state.ingredients = [];
+        return state;
+      }
+
       const { fromIndex, toIndex } = action.payload;
-      const [moved] = state.ingredients.splice(fromIndex, 1);
-      state.ingredients.splice(toIndex, 0, moved);
+      const ingredients = [...state.ingredients];
+      const [movedIngredient] = ingredients.splice(fromIndex, 1);
+      ingredients.splice(toIndex, 0, movedIngredient);
+      return {
+        ...state,
+        ingredients
+      };
     }
   }
 });

@@ -22,29 +22,27 @@ const feedsSlice = createSlice({
   name: 'feeds',
   initialState,
   reducers: {
-    updateFeeds: (
-      state,
-      action: PayloadAction<{
-        orders?: TOrder[];
-        total?: number;
-        totalToday?: number;
-        error?: string | null;
-      }>
-    ) => {
-      if (action.payload.orders !== undefined) {
-        state.orders = action.payload.orders;
-      }
-      if (action.payload.total !== undefined) {
-        state.total = action.payload.total;
-      }
-      if (action.payload.totalToday !== undefined) {
-        state.totalToday = action.payload.totalToday;
-      }
-      if (action.payload.error !== undefined) {
-        state.error = action.payload.error;
-      }
+    setOrders: (state, action: PayloadAction<TOrder[]>) => {
+      state.orders = action.payload;
     },
-    clearFeeds: () => initialState
+    setTotal: (state, action: PayloadAction<number>) => {
+      state.total = action.payload;
+    },
+    setTotalToday: (state, action: PayloadAction<number>) => {
+      state.totalToday = action.payload;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    clearFeeds: (state) => {
+      state.orders = [];
+      state.total = 0;
+      state.totalToday = 0;
+      state.error = null;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -57,6 +55,7 @@ const feedsSlice = createSlice({
         state.orders = action.payload.orders;
         state.total = action.payload.total;
         state.totalToday = action.payload.totalToday;
+        state.error = null;
       })
       .addCase(fetchFeeds.rejected, (state, action) => {
         state.loading = false;
@@ -65,5 +64,13 @@ const feedsSlice = createSlice({
   }
 });
 
-export const { updateFeeds, clearFeeds } = feedsSlice.actions;
+export const {
+  setOrders,
+  setTotal,
+  setTotalToday,
+  setLoading,
+  setError,
+  clearFeeds
+} = feedsSlice.actions;
+
 export default feedsSlice.reducer;

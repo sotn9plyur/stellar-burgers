@@ -28,10 +28,7 @@ const splitOrders = (orders: number[]) => {
 export const FeedInfo: FC = () => {
   const { orders, total, totalToday } = useSelector((state) => state.feeds);
 
-  const feedStats = useMemo(
-    () => ({ total, totalToday }),
-    [total, totalToday]
-  );
+  const feedStats = useMemo(() => ({ total, totalToday }), [total, totalToday]);
 
   const readyOrders = useMemo(
     () => filterOrders(orders, OrderStatus.Done),

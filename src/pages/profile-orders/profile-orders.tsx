@@ -23,7 +23,7 @@ export const ProfileOrders: FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div style={{ textAlign: 'center', padding: '20px' }}>
+      <div /*  style={{ textAlign: 'center', padding: '20px' }} */>
         <h2>Необходима авторизация</h2>
         <p>Для просмотра заказов войдите в систему</p>
       </div>
@@ -36,7 +36,7 @@ export const ProfileOrders: FC = () => {
 
   if (error) {
     return (
-      <div style={{ textAlign: 'center', padding: '20px' }}>
+      <div /* style={{ textAlign: 'center', padding: '20px' }} */>
         <h2>Ошибка загрузки заказов</h2>
         <p>{error}</p>
         <button onClick={handleRetry}>Попробовать еще раз</button>

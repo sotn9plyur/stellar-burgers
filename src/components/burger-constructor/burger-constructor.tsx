@@ -10,24 +10,21 @@ export const BurgerConstructor: FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const {
-    bun,
-    ingredients = [],
-    totalPrice = 0
-  } = useSelector((state) => state.constructor);
-  const { currentOrder, loading: orderRequest = false } = useSelector(
+  const { bun, ingredients, totalPrice } = useSelector(
+    (state) => state.constructor
+  );
+  const { currentOrder, loading: orderRequest } = useSelector(
     (state) => state.orders
   );
-  const { isAuthenticated = false } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
-  const constructorItems = {
-    bun,
-    ingredients: ingredients || []
-  };
-
-  if (!ingredients) {
-    return <div>Загрузка конструктора...</div>;
-  }
+  const constructorItems = useMemo(
+    () => ({
+      bun,
+      ingredients: ingredients || []
+    }),
+    [bun, ingredients]
+  );
 
   const onOrderClick = () => {
     if (!bun || orderRequest) return;
@@ -39,20 +36,22 @@ export const BurgerConstructor: FC = () => {
 
     const ingredientIds = [
       bun._id,
-      ...ingredients.map((item) => item._id),
+      ...(ingredients?.map((item) => item._id) || []),
       bun._id
     ];
 
-    dispatch(createOrder(ingredientIds)).then(() => {
-      dispatch(clearConstructor());
-    });
+    dispatch(createOrder(ingredientIds))
+      .unwrap()
+      .then(() => {
+        dispatch(clearConstructor());
+      });
   };
 
   const closeOrderModal = () => {
     dispatch(clearOrder());
   };
 
-  const price = useMemo(() => totalPrice, [totalPrice]);
+  const price = useMemo(() => totalPrice || 0, [totalPrice]);
 
   return (
     <BurgerConstructorUI

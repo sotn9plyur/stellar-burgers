@@ -13,25 +13,20 @@ import {
 import { TUser } from '../../utils/types';
 import { setCookie, deleteCookie } from '../../utils/cookie';
 
-const handleAuthError = (error: unknown, defaultMessage: string) => {
-  const message = error instanceof Error ? error.message : defaultMessage;
-  deleteCookie('accessToken');
-  localStorage.removeItem('refreshToken');
-  return message;
-};
-
 export const registerUser = createAsyncThunk<
   { user: TUser; accessToken: string; refreshToken: string },
   TRegisterData,
   { rejectValue: string }
->('auth/register', async (userData, { rejectWithValue }) => {
+>('auth/registerUser', async (userData, { rejectWithValue }) => {
   try {
     const data = await registerUserApi(userData);
     setCookie('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     return data;
   } catch (error) {
-    return rejectWithValue(handleAuthError(error, 'Ошибка регистрации'));
+    return rejectWithValue(
+      error instanceof Error ? error.message : 'Ошибка регистрации'
+    );
   }
 });
 
@@ -39,26 +34,30 @@ export const loginUser = createAsyncThunk<
   { user: TUser; accessToken: string; refreshToken: string },
   TLoginData,
   { rejectValue: string }
->('auth/login', async (userData, { rejectWithValue }) => {
+>('auth/loginUser', async (userData, { rejectWithValue }) => {
   try {
     const data = await loginUserApi(userData);
     setCookie('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     return data;
   } catch (error) {
-    return rejectWithValue(handleAuthError(error, 'Ошибка входа'));
+    return rejectWithValue(
+      error instanceof Error ? error.message : 'Ошибка входа'
+    );
   }
 });
 
 export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
-  'auth/logout',
+  'auth/logoutUser',
   async (_, { rejectWithValue }) => {
     try {
       await logoutApi();
       deleteCookie('accessToken');
       localStorage.removeItem('refreshToken');
     } catch (error) {
-      return rejectWithValue(handleAuthError(error, 'Ошибка выхода'));
+      return rejectWithValue(
+        error instanceof Error ? error.message : 'Ошибка выхода'
+      );
     }
   }
 );
@@ -70,8 +69,10 @@ export const getUser = createAsyncThunk<TUser, void, { rejectValue: string }>(
       const data = await getUserApi();
       return data.user;
     } catch (error) {
+      deleteCookie('accessToken');
+      localStorage.removeItem('refreshToken');
       return rejectWithValue(
-        handleAuthError(error, 'Ошибка получения данных пользователя')
+        error instanceof Error ? error.message : 'Ошибка получения пользователя'
       );
     }
   }
@@ -86,7 +87,9 @@ export const updateUser = createAsyncThunk<
     const data = await updateUserApi(userData);
     return data.user;
   } catch (error) {
-    return rejectWithValue(handleAuthError(error, 'Ошибка обновления данных'));
+    return rejectWithValue(
+      error instanceof Error ? error.message : 'Ошибка обновления пользователя'
+    );
   }
 });
 
@@ -99,7 +102,7 @@ export const forgotPassword = createAsyncThunk<
     await forgotPasswordApi({ email });
   } catch (error) {
     return rejectWithValue(
-      handleAuthError(error, 'Ошибка восстановления пароля')
+      error instanceof Error ? error.message : 'Ошибка восстановления пароля'
     );
   }
 });
@@ -112,6 +115,8 @@ export const resetPassword = createAsyncThunk<
   try {
     await resetPasswordApi({ password, token });
   } catch (error) {
-    return rejectWithValue(handleAuthError(error, 'Ошибка сброса пароля'));
+    return rejectWithValue(
+      error instanceof Error ? error.message : 'Ошибка сброса пароля'
+    );
   }
 });

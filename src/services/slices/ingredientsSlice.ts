@@ -6,25 +6,18 @@ interface IngredientsState {
   ingredients: TIngredient[];
   loading: boolean;
   error: string | null;
-  lastFetched: number | null;
 }
 
 const initialState: IngredientsState = {
   ingredients: [],
   loading: false,
-  error: null,
-  lastFetched: null
+  error: null
 };
 
 const ingredientsSlice = createSlice({
   name: 'ingredients',
   initialState,
-  reducers: {
-    clearIngredientsError: (state) => {
-      state.error = null;
-    },
-    resetIngredients: () => initialState
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchIngredients.pending, (state) => {
@@ -34,15 +27,13 @@ const ingredientsSlice = createSlice({
       .addCase(fetchIngredients.fulfilled, (state, action) => {
         state.loading = false;
         state.ingredients = action.payload;
-        state.lastFetched = Date.now();
+        state.error = null;
       })
       .addCase(fetchIngredients.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Ошибка загрузки ингредиентов';
-        state.lastFetched = null;
       });
   }
 });
 
-export const { clearIngredientsError, resetIngredients } = ingredientsSlice.actions;
 export default ingredientsSlice.reducer;
