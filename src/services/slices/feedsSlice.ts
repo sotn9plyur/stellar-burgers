@@ -74,3 +74,5 @@ export const {
 } = feedsSlice.actions;
 
 export default feedsSlice.reducer;
+export type { FeedsState };
+

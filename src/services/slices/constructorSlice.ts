@@ -119,3 +119,4 @@ export const {
 } = constructorSlice.actions;
 
 export default constructorSlice.reducer;
+export type { ConstructorState };
