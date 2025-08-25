@@ -1,6 +1,5 @@
 import ingredientsReducer from '../ingredientsSlice';
-import { fetchIngredients } from '../../api/ingredientsApi';
-import { mockIngridientsData } from './Mock';
+import { mockIngridientsData } from '../mockData';
 
 interface IngredientsState {
   ingredients: any[];
@@ -14,50 +13,30 @@ const initialState: IngredientsState = {
   error: null
 };
 
-jest.mock('../api/ingredientsApi', () => ({
-  fetchIngredients: {
-    pending: (arg: string) => ({
-      type: 'fetchIngredients/pending',
-      meta: { arg }
-    }),
-    fulfilled: (payload: any, arg: string) => ({
-      type: 'fetchIngredients/fulfilled',
-      payload,
-      meta: { arg }
-    }),
-    rejected: (error: any, arg: string) => ({
-      type: 'fetchIngredients/rejected',
-      error,
-      meta: { arg }
-    })
-  }
-}));
-
 describe('ingredientsSlice tests', () => {
   test('fetchIngredients.pending', () => {
-    const state = ingredientsReducer(
-      initialState,
-      fetchIngredients.pending('')
-    );
+    const state = ingredientsReducer(initialState, {
+      type: 'ingredients/fetchIngredients/pending'
+    });
     expect(state.loading).toBe(true);
     expect(state.error).toBeNull();
   });
 
   test('fetchIngredients.rejected', () => {
-    const error = 'error';
-    const state = ingredientsReducer(
-      initialState,
-      fetchIngredients.rejected(new Error(error), '')
-    );
+    const errorMessage = 'Ошибка загрузки ингредиентов';
+    const state = ingredientsReducer(initialState, {
+      type: 'ingredients/fetchIngredients/rejected',
+      error: { message: errorMessage }
+    });
     expect(state.loading).toBe(false);
-    expect(state.error).toBe(error);
+    expect(state.error).toBe(errorMessage);
   });
 
   test('fetchIngredients.fulfilled', () => {
-    const state = ingredientsReducer(
-      initialState,
-      fetchIngredients.fulfilled(mockIngridientsData, '')
-    );
+    const state = ingredientsReducer(initialState, {
+      type: 'ingredients/fetchIngredients/fulfilled',
+      payload: mockIngridientsData
+    });
     expect(state.loading).toBe(false);
     expect(state.ingredients).toEqual(mockIngridientsData);
     expect(state.error).toBeNull();

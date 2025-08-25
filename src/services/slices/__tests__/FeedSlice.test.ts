@@ -7,7 +7,7 @@ import feedsReducer, {
   clearFeeds
 } from '../feedsSlice';
 import { fetchFeeds } from '../../api/feedsApi';
-import { mockUserOrders } from './Mock';
+import { mockUserOrders } from '../mockData';
 import { FeedsState } from '../feedsSlice';
 
 const initialState: FeedsState = {
@@ -21,23 +21,21 @@ const initialState: FeedsState = {
 describe('feedsSlice tests', () => {
   test('fetchFeeds.pending', () => {
     const state = feedsReducer(initialState, fetchFeeds.pending(''));
-
     expect(state.loading).toBe(true);
     expect(state.error).toBeNull();
   });
 
   test('fetchFeeds.rejected', () => {
-    const error = 'error';
+    const errorMessage = 'Ошибка загрузки ленты заказов';
     const state = feedsReducer(
       initialState,
-      fetchFeeds.rejected(new Error(error), '', undefined)
+      fetchFeeds.rejected(new Error(errorMessage), '', undefined)
     );
-
     expect(state.orders).toEqual([]);
     expect(state.total).toBe(0);
     expect(state.totalToday).toBe(0);
     expect(state.loading).toBe(false);
-    expect(state.error).toBe(error);
+    expect(state.error).toBe(errorMessage);
   });
 
   test('fetchFeeds.fulfilled', () => {
@@ -45,7 +43,6 @@ describe('feedsSlice tests', () => {
       initialState,
       fetchFeeds.fulfilled(mockUserOrders, '', undefined)
     );
-
     expect(state.loading).toBe(false);
     expect(state.orders).toEqual(mockUserOrders.orders);
     expect(state.total).toBe(mockUserOrders.total);
@@ -89,7 +86,6 @@ describe('feedsSlice tests', () => {
       loading: true,
       error: 'error'
     };
-
     const state = feedsReducer(filledState, clearFeeds());
     expect(state.orders).toEqual([]);
     expect(state.total).toBe(0);

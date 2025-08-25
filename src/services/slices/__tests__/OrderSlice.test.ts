@@ -4,23 +4,17 @@ import {
   mockOrderIds,
   mockOrderNumber,
   mockCreateOrderResponce,
-  mockOrderResponce,
-  mockUserOrders
-} from './Mock';
+  mockOrderResponce
+} from '../mockData';
 
+// Объединяем все mocks в один
 jest.mock('@api', () => ({
-  orderBurgerApi: jest.fn()
-}));
-
-jest.mock('@api', () => ({
-  getOrderByNumberApi: jest.fn()
-}));
-
-jest.mock('@api', () => ({
+  orderBurgerApi: jest.fn(),
+  getOrderByNumberApi: jest.fn(),
   getOrdersApi: jest.fn()
 }));
 
-const initiallState = {
+const initialState = {
   currentOrder: null,
   orderDetails: null,
   loading: false,
@@ -30,7 +24,7 @@ const initiallState = {
 describe('OrderSlice test', () => {
   test('createOrder.pending', () => {
     const state = ordersSlice.reducer(
-      initiallState,
+      initialState,
       createOrder.pending('', mockOrderIds)
     );
 
@@ -39,19 +33,19 @@ describe('OrderSlice test', () => {
   });
 
   test('createOrder.rejected', () => {
-    const error = 'error';
+    const errorMessage = 'Ошибка создания заказа';
     const state = ordersSlice.reducer(
-      initiallState,
-      createOrder.rejected(new Error(error), '', mockOrderIds)
+      initialState,
+      createOrder.rejected(new Error(errorMessage), '', mockOrderIds)
     );
 
     expect(state.loading).toBe(false);
-    expect(state.error).toBe(error);
+    expect(state.error).toBe(errorMessage);
   });
 
   test('createOrder.fulfilled', () => {
     const state = ordersSlice.reducer(
-      initiallState,
+      initialState,
       createOrder.fulfilled(mockCreateOrderResponce.order, '', mockOrderIds)
     );
 
@@ -62,7 +56,7 @@ describe('OrderSlice test', () => {
 
   test('getOrderByNumber.pending', () => {
     const state = ordersSlice.reducer(
-      initiallState,
+      initialState,
       getOrderByNumber.pending('', mockOrderNumber)
     );
 
@@ -72,20 +66,20 @@ describe('OrderSlice test', () => {
   });
 
   test('getOrderByNumber.rejected', () => {
-    const error = 'error';
+    const errorMessage = 'Ошибка получения заказа';
     const state = ordersSlice.reducer(
-      initiallState,
-      getOrderByNumber.rejected(new Error(error), '', mockOrderNumber)
+      initialState,
+      getOrderByNumber.rejected(new Error(errorMessage), '', mockOrderNumber)
     );
 
     expect(state.loading).toBe(false);
     expect(state.orderDetails).toBeNull();
-    expect(state.error).toBe(error);
+    expect(state.error).toBe(errorMessage);
   });
 
   test('getOrderByNumber.fulfilled', () => {
     const state = ordersSlice.reducer(
-      initiallState,
+      initialState,
       getOrderByNumber.fulfilled(
         mockOrderResponce.orders[0],
         '',

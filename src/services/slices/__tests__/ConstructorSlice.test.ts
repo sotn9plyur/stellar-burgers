@@ -5,7 +5,7 @@ import constructorReducer, {
   moveIngredient,
   ConstructorState
 } from '../constructorSlice';
-import { mockBun, mockIngredient, mockSauce } from './Mock';
+import { mockBun, mockIngredient, mockSauce } from '../mockData';
 
 const initialState: ConstructorState = {
   bun: null,

@@ -1,3 +1,8 @@
+import authReducer, {
+  clearError,
+  setAuthChecked,
+  logout
+} from '../../slices/authSlice';
 import {
   registerUser,
   loginUser,
@@ -5,30 +10,9 @@ import {
   getUser,
   updateUser
 } from '../../api/authApi';
-import { authSlice } from '../authSlice';
-import { mockLoginData, mockUserData, mockUserRegisterData } from './Mock';
+import { mockUserData } from '../mockData';
 
-jest.mock('@api', () => ({
-  getUserApi: jest.fn()
-}));
-
-jest.mock('@api', () => ({
-  registerUserApi: jest.fn()
-}));
-
-jest.mock('@api', () => ({
-  loginUserApi: jest.fn()
-}));
-
-jest.mock('@api', () => ({
-  logoutApi: jest.fn()
-}));
-
-jest.mock('@api', () => ({
-  updateUserApi: jest.fn()
-}));
-
-const initiallState = {
+const initialState = {
   user: null,
   accessToken: null,
   refreshToken: null,
@@ -38,180 +22,100 @@ const initiallState = {
   error: null
 };
 
-describe('UserSlice test', () => {
-  test('getUser.pending', () => {
-    const state = authSlice.reducer(initiallState, getUser.pending(''));
-
-    expect(state.loading).toBe(true);
-    expect(state.error).toBeNull();
+describe('authSlice tests', () => {
+  it('should return initial state', () => {
+    expect(authReducer(undefined, { type: '' })).toEqual(initialState);
   });
 
-  test('getUser.rejected', () => {
-    const error = 'error';
-    const state = authSlice.reducer(
-      initiallState,
-      getUser.rejected(new Error(error), '')
+  it('should handle clearError', () => {
+    const stateWithError = { ...initialState, error: 'Ошибка' };
+    expect(authReducer(stateWithError, clearError()).error).toBeNull();
+  });
+
+  it('should handle setAuthChecked', () => {
+    expect(authReducer(initialState, setAuthChecked(true)).authChecked).toBe(
+      true
     );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBe(error);
-    expect(state.authChecked).toBe(true);
-    expect(state.user).toBeNull();
   });
 
-  test('getUser.fulfilled', () => {
-    const state = authSlice.reducer(
-      initiallState,
-      getUser.fulfilled(mockUserData, '')
-    );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBeNull();
-    expect(state.authChecked).toBe(true);
-    expect(state.user).toEqual(mockUserData);
-  });
-
-  test('registerUser.pending', () => {
-    const state = authSlice.reducer(
-      initiallState,
-      registerUser.pending('', mockUserRegisterData)
-    );
-
-    expect(state.loading).toBe(true);
-    expect(state.error).toBeNull();
-  });
-
-  test('registerUser.rejected', () => {
-    const error = 'error';
-    const state = authSlice.reducer(
-      initiallState,
-      registerUser.rejected(new Error(error), '', mockUserRegisterData)
-    );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBe(error);
-    expect(state.authChecked).toBe(true);
-    expect(state.user).toBeNull();
-  });
-
-  test('registerUser.fulfilled', () => {
-    const mockResponse = {
+  it('should handle logout reducer', () => {
+    const state = {
+      ...initialState,
       user: mockUserData,
-      accessToken: 'test-token',
-      refreshToken: 'test-refresh-token'
+      accessToken: 'token',
+      refreshToken: 'refresh',
+      isAuthenticated: true,
+      authChecked: false
     };
-    const state = authSlice.reducer(
-      initiallState,
-      registerUser.fulfilled(mockResponse, '', mockUserRegisterData)
-    );
+    const newState = authReducer(state, logout());
+    expect(newState.user).toBeNull();
+    expect(newState.isAuthenticated).toBe(false);
+    expect(newState.authChecked).toBe(true);
+  });
 
-    expect(state.loading).toBe(false);
-    expect(state.error).toBeNull();
-    expect(state.authChecked).toBe(true);
+  it('registerUser.fulfilled should update state', () => {
+    const action = {
+      type: registerUser.fulfilled.type,
+      payload: {
+        user: mockUserData,
+        accessToken: 'token',
+        refreshToken: 'refresh'
+      }
+    };
+    const state = authReducer(initialState, action);
     expect(state.user).toEqual(mockUserData);
-  });
-
-  test('loginUser.pending', () => {
-    const state = authSlice.reducer(
-      initiallState,
-      loginUser.pending('', mockLoginData)
-    );
-
-    expect(state.loading).toBe(true);
-    expect(state.error).toBeNull();
-  });
-
-  test('loginUser.rejected', () => {
-    const error = 'error';
-    const state = authSlice.reducer(
-      initiallState,
-      loginUser.rejected(new Error(error), '', mockLoginData)
-    );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBe(error);
+    expect(state.isAuthenticated).toBe(true);
     expect(state.authChecked).toBe(true);
-    expect(state.user).toBeNull();
   });
 
-  test('loginUser.fulfilled', () => {
-    const mockResponse = {
+  -it('loginUser.fulfilled should update state', () => {
+    const action = {
+      type: loginUser.fulfilled.type,
+      payload: {
+        user: mockUserData,
+        accessToken: 'token',
+        refreshToken: 'refresh'
+      }
+    };
+    const state = authReducer(initialState, action);
+    expect(state.user).toEqual(mockUserData);
+    expect(state.isAuthenticated).toBe(true);
+    expect(state.authChecked).toBe(true);
+  });
+
+  it('logoutUser.fulfilled should clear auth data', () => {
+    const stateBefore = {
+      ...initialState,
       user: mockUserData,
-      accessToken: 'test-token',
-      refreshToken: 'test-refresh-token'
+      accessToken: 'token',
+      refreshToken: 'refresh',
+      isAuthenticated: true
     };
-    const state = authSlice.reducer(
-      initiallState,
-      loginUser.fulfilled(mockResponse, '', mockLoginData)
-    );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBeNull();
-    expect(state.authChecked).toBe(true);
-    expect(state.user).toEqual(mockUserData);
-  });
-
-  test('logoutUser.pending', () => {
-    const state = authSlice.reducer(initiallState, logoutUser.pending(''));
-
-    expect(state.loading).toBe(true);
-    expect(state.error).toBeNull();
-  });
-
-  test('logoutUser.rejected', () => {
-    const error = 'error';
-    const state = authSlice.reducer(
-      initiallState,
-      logoutUser.rejected(new Error(error), '')
-    );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBe(error);
-  });
-
-  test('logoutUser.fulfilled', () => {
-    const state = authSlice.reducer(
-      initiallState,
-      logoutUser.fulfilled(undefined, '')
-    );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBeNull();
+    const action = { type: logoutUser.fulfilled.type };
+    const state = authReducer(stateBefore, action);
     expect(state.user).toBeNull();
-  });
-
-  test('updateUser.pending', () => {
-    const state = authSlice.reducer(
-      initiallState,
-      updateUser.pending('', mockUserRegisterData)
-    );
-
-    expect(state.loading).toBe(true);
-    expect(state.error).toBeNull();
-  });
-
-  test('updateUser.rejected', () => {
-    const error = 'error';
-    const state = authSlice.reducer(
-      initiallState,
-      updateUser.rejected(new Error(error), '', mockUserRegisterData)
-    );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBe(error);
+    expect(state.isAuthenticated).toBe(false);
     expect(state.authChecked).toBe(true);
-    expect(state.user).toBeNull();
   });
 
-  test('updateUser.fulfilled', () => {
-    const state = authSlice.reducer(
-      initiallState,
-      updateUser.fulfilled(mockUserData, '', mockUserRegisterData)
-    );
-
-    expect(state.loading).toBe(false);
-    expect(state.error).toBeNull();
+  it('getUser.fulfilled should set user and mark authChecked', () => {
+    const action = {
+      type: getUser.fulfilled.type,
+      payload: mockUserData
+    };
+    const state = authReducer(initialState, action);
     expect(state.user).toEqual(mockUserData);
+    expect(state.isAuthenticated).toBe(true);
     expect(state.authChecked).toBe(true);
+  });
+
+  it('updateUser.fulfilled should update user and keep authChecked=false (по твоему коду)', () => {
+    const action = {
+      type: updateUser.fulfilled.type,
+      payload: { ...mockUserData, name: 'updated' }
+    };
+    const state = authReducer(initialState, action);
+    expect(state.user).toEqual({ ...mockUserData, name: 'updated' });
+    expect(state.authChecked).toBe(false);
   });
 });

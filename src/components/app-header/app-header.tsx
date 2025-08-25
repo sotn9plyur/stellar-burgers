@@ -23,11 +23,8 @@ export const AppHeader: FC = () => {
     [navigate]
   );
 
-  const isActive = (path: string, exact: boolean = false) => {
-    return exact
-      ? location.pathname === path
-      : location.pathname.startsWith(path);
-  };
+  const isActive = (path: string, exact: boolean = false) =>
+    exact ? location.pathname === path : location.pathname.startsWith(path);
 
   return (
     <AppHeaderUI

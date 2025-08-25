@@ -1,3 +1,5 @@
+export {};
+
 import { TConstructorIngredient, TIngredient } from '@utils-types';
 
 export const mockBun: TConstructorIngredient = {

@@ -75,4 +75,3 @@ export const {
 
 export default feedsSlice.reducer;
 export type { FeedsState };
-
