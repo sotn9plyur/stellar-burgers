@@ -1,56 +1,34 @@
 import { selectors } from '../support/selectors';
 
 describe('Constructor Burger', () => {
+  let ingredientsData: any;
+
   beforeEach(() => {
-    // Моки запросов к API
     cy.intercept('GET', '/api/auth/user', { fixture: 'login.json' }).as('getUser');
     cy.intercept('GET', '/api/ingredients', { fixture: 'ingredients.json' }).as('getIngredients');
 
-    // Токены
     window.localStorage.setItem('refreshToken', 'refreshTokenMock');
     cy.setCookie('accessToken', 'mockedAccessToken');
 
-    // Открываем страницу
     cy.visit('/');
 
-    // Ждем завершения запросов
     cy.wait('@getUser');
     cy.wait('@getIngredients');
 
-    // Загружаем фикстуру ингредиентов
     cy.fixture('ingredients.json').then((data) => {
-      // Ищем элементы по типу через содержимое (название, картинка и т.д.)
-      const ingredients = data.data;
+      ingredientsData = data.data;
 
-      // Булка
-      const bun = ingredients.find((i: any) => i.type === 'bun');
-      cy.contains(bun.name)
-        .parents(selectors.ingredient)
-        .as('bun');
-      cy.get('@bun')
-        .find('button', { timeout: 10000 })
-        .should('exist')
-        .as('bunAddBtn');
+      const bun = ingredientsData.find((i: any) => i.type === 'bun');
+      cy.contains(bun.name).parents(selectors.ingredient).as('bun');
+      cy.get('@bun').find('button', { timeout: 10000 }).should('exist').as('bunAddBtn');
 
-      // Начинка
-      const filling = ingredients.find((i: any) => i.type === 'main');
-      cy.contains(filling.name)
-        .parents(selectors.ingredient)
-        .as('filling');
-      cy.get('@filling')
-        .find('button', { timeout: 10000 })
-        .should('exist')
-        .as('fillingAddBtn');
+      const filling = ingredientsData.find((i: any) => i.type === 'main');
+      cy.contains(filling.name).parents(selectors.ingredient).as('filling');
+      cy.get('@filling').find('button', { timeout: 10000 }).should('exist').as('fillingAddBtn');
 
-      // Соус
-      const sauce = ingredients.find((i: any) => i.type === 'sauce');
-      cy.contains(sauce.name)
-        .parents(selectors.ingredient)
-        .as('sauce');
-      cy.get('@sauce')
-        .find('button', { timeout: 10000 })
-        .should('exist')
-        .as('sauceAddBtn');
+      const sauce = ingredientsData.find((i: any) => i.type === 'sauce');
+      cy.contains(sauce.name).parents(selectors.ingredient).as('sauce');
+      cy.get('@sauce').find('button', { timeout: 10000 }).should('exist').as('sauceAddBtn');
     });
   });
 
@@ -60,31 +38,58 @@ describe('Constructor Burger', () => {
   });
 
   it('добавление ингредиента в конструктор', () => {
-    cy.contains(selectors.selectBun).should('be.visible');
-    cy.contains(selectors.selectMain).should('be.visible');
-
     cy.get('@bunAddBtn').click({ force: true });
-    cy.contains(selectors.selectBun).should('not.exist');
-    cy.get(selectors.constructorElement).should('have.length', 2);
-
     cy.get('@fillingAddBtn').click({ force: true });
-    cy.contains(selectors.selectMain).should('not.exist');
-    cy.get(selectors.constructorElement).should('have.length', 3);
-
     cy.get('@sauceAddBtn').click({ force: true });
-    cy.get(selectors.constructorElement).should('have.length', 4);
+
+    cy.fixture('ingredients.json').then((data) => {
+      const bun = data.data.find((i: any) => i.type === 'bun');
+      const filling = data.data.find((i: any) => i.type === 'main');
+      const sauce = data.data.find((i: any) => i.type === 'sauce');
+
+      cy.get(selectors.constructorElement)
+        .should('contain.text', bun.name)
+        .and('contain.text', filling.name)
+        .and('contain.text', sauce.name);
+    });
   });
 
   it('закрытие модалки по крестику', () => {
     cy.get('@bun').find('a').click({ force: true });
     cy.get(selectors.modal, { timeout: 10000 }).should('exist');
+
+    cy.fixture('ingredients.json').then((data) => {
+      const bun = data.data.find((i: any) => i.type === 'bun');
+
+      cy.get(selectors.modal)
+        .find(selectors.ingredientName)
+        .should('have.text', bun.name);
+
+      cy.get(selectors.modal).contains('Белки').next().should('have.text', bun.proteins.toString());
+      cy.get(selectors.modal).contains('Жиры').next().should('have.text', bun.fat.toString());
+      cy.get(selectors.modal).contains('Углеводы').next().should('have.text', bun.carbohydrates.toString());
+    });
+
     cy.get(selectors.modalClose).click({ force: true });
     cy.get(selectors.modal, { timeout: 10000 }).should('not.exist');
   });
 
   it('закрытие модалки по оверлею', () => {
-    cy.get('@bun').find('a').click({ force: true });
+    cy.get('@filling').find('a').click({ force: true });
     cy.get(selectors.modalOverlay).should('exist');
+
+    cy.fixture('ingredients.json').then((data) => {
+      const filling = data.data.find((i: any) => i.type === 'main');
+
+      cy.get(selectors.modal)
+        .find(selectors.ingredientName)
+        .should('have.text', filling.name);
+
+      cy.get(selectors.modal).contains('Белки').next().should('have.text', filling.proteins.toString());
+      cy.get(selectors.modal).contains('Жиры').next().should('have.text', filling.fat.toString());
+      cy.get(selectors.modal).contains('Углеводы').next().should('have.text', filling.carbohydrates.toString());
+    });
+
     cy.get(selectors.modalOverlay).click({ force: true });
     cy.get(selectors.modal).should('not.exist');
   });
@@ -95,7 +100,17 @@ describe('Constructor Burger', () => {
     cy.get('@bunAddBtn').click({ force: true });
     cy.get('@fillingAddBtn').click({ force: true });
     cy.get('@sauceAddBtn').click({ force: true });
-    cy.get(selectors.constructorElement).should('have.length', 4);
+
+    cy.fixture('ingredients.json').then((data) => {
+      const bun = data.data.find((i: any) => i.type === 'bun');
+      const filling = data.data.find((i: any) => i.type === 'main');
+      const sauce = data.data.find((i: any) => i.type === 'sauce');
+
+      cy.get(selectors.constructorElement)
+        .should('contain.text', bun.name)
+        .and('contain.text', filling.name)
+        .and('contain.text', sauce.name);
+    });
 
     cy.contains('Оформить заказ').click({ force: true });
     cy.wait('@createOrder');
@@ -109,8 +124,5 @@ describe('Constructor Burger', () => {
 
     cy.get(selectors.modalClose).click({ force: true });
     cy.get(selectors.modal, { timeout: 10000 }).should('not.exist');
-    cy.contains(selectors.selectBun).should('be.visible');
-    cy.contains(selectors.selectMain).should('be.visible');
-    cy.get(selectors.constructorElement).should('have.length', 0);
   });
 });

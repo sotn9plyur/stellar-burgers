@@ -5,6 +5,7 @@ export const selectors = {
   modalOverlay: '[data-cy=modal-overlay]',
   constructorElement: 'div.constructor-element',
   orderNumber: '[data-cy=order-number]',
+  ingredientName: '[data-cy=ingredient-name]',
   selectBun: 'Выберите булки',
   selectMain: 'Выберите начинку',
 };
