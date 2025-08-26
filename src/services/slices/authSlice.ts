@@ -154,4 +154,5 @@ const authSlice = createSlice({
 
 export const { clearError, setAuthChecked, logout } = authSlice.actions;
 
+export { authSlice };
 export default authSlice.reducer;
